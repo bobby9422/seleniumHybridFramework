@@ -23,12 +23,12 @@ import org.testng.annotations.AfterTest;
 
 public class BaseTest {
 
-	WebDriver driver;
-	WebDriverWait wait;
+	public WebDriver driver;
+	public WebDriverWait wait;
 	BasePage page; 
 	loginPage lp;
-	Properties prop;
-	FileInputStream in;
+	public Properties prop;
+	public FileInputStream in;
 	
 	@BeforeSuite
 	@Parameters({ "browser" })
@@ -39,10 +39,9 @@ public class BaseTest {
 			wait = new WebDriverWait(driver, 15);
 			driver.manage().window().maximize();
 			page = new BasePage(driver,wait);
+			System.out.println("chrome: "+driver);
 		}
-		prop = new Properties();
-		in = new FileInputStream(System.getProperty("user.dir")+"\\res\\input.properties");
-		prop.load(in);
+		
 	}
 
 	@AfterTest
