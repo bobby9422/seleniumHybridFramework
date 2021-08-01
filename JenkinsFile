@@ -1,0 +1,77 @@
+#!/usr/bin/env groovy
+import groovy.json.*
+import groovy.system.*
+pipeline
+{
+  environment {
+    // MavenTool = "C:\\apache-maven-3.3.9\\bin"
+    // projectName = 'FWH.Automation.APIBatchExecution'
+    // repoName = "FWH.Automation.APIBatchExecution"
+    // notifyEmails2 = 'gupta_pra@subway.com,agarwal_b@subway.com,devkamble_s@subway.com,gupta_su@subway.com,sudha_l@subway.com,panwelkar_r@subway.com,rajeshkumar.saha@capgemini.com,ayalasomayajula_r@subway.com,rachaconda_n@subway.com,gupta_t@subway.com,laxmikant-jaykisanji.chhangani@capgemini.com,deepak.solasa@capgemini.com,ashita.avadhani@capgemini.com;'
+    // notifyEmails1 = 'agarwal_b@subway.com'
+    // notifyEmails = 'bobbyagarwal23@gmail.com'
+    // sleepTime = 5000
+    // project = "SubwayMenuAPI "
+
+    msgSubPass = "${project} Test Passed - Jenkins build is stable"
+    msgSubFail = "${project} Pipeline failed - Jenkins build is still unstable"
+  }
+  agent any
+  stages {
+    
+    stage('defineScope') {
+      steps {
+        script {
+          if ("${env.Scope}" == "Regression" && "${env.Version}" == "v1") {
+            testSuiteType = "regressionsuite"
+          }
+          else if ("${env.Scope}" == "Smoke"  && "${env.Version}" == "v1") {
+            testSuiteType = "menu_Smoke"
+          }
+          else if ("${env.Scope}" == "Regression" && "${env.Version}" == "v2") {
+            testSuiteType = "regressionsuite2"
+          }
+          else if ("${env.Scope}" == "Smoke"  && "${env.Version}" == "v2") {
+            testSuiteType = "menu_Smoke2"
+          }
+       
+ 
+        }
+      }
+    }
+    stage('Execute Tests') {
+      steps {
+        script {
+
+          def exitCode = bat script: "${MavenTool}\\mvn test"
+          if (env.BuildNumber != "") {
+            msgSubPass = "${project} Build ${env.BuildNumber} Version ${env.Version} Store ${env.StoreNumber} Passed - Jenkins build is stable"
+            msgSubFail = "${project} Build ${env.BuildNumber} Version ${env.Version} Store ${env.StoreNumber} failed - Jenkins build is still unstable"
+          }
+        }
+      }
+    }
+  }
+  post {
+    success {
+
+      emailext attachLog: true,
+      body: "${env.Scope} tests for ${project} passed!!!<br><br>Build <a href='${env.BUILD_URL}'>#${env.BUILD_NUMBER}</a><br>Environment - ${env.Environment}<br>Country - ${env.Country}<br>API_Version - ${env.Version}<br>Store Number - ${env.StoreNumber} ",
+     
+      compressLog: true,
+      subject: "${msgSubPass}",
+      to: "${notifyEmails}"
+    }
+    failure {
+
+      emailext attachLog: true,
+      body: "${env.Scope} tests for ${project} failed, for failure reason please see the attached logs.<br><br>Build <a href='${env.BUILD_URL}'>#${env.BUILD_NUMBER}</a><br>Environment - ${env.Environment}<br>Country - ${env.Country} <br>API_Version - ${env.Version}<br>Store Number - ${env.StoreNumber}",
+      compressLog: true,
+      subject: "${msgSubFail}",
+      to: "${notifyEmails}"
+    }
+    cleanup {
+      cleanWs()
+    }
+  }
+}
