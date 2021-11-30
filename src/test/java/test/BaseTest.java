@@ -34,8 +34,10 @@ public class BaseTest {
 	@Parameters({ "browser" })
 	public void beforetest(@Optional("chrome") String browser) throws IOException {
 		if (browser.equalsIgnoreCase("chrome")) {
+			final ChromeOptions chromeOptions = new ChromeOptions();
 			WebDriverManager.chromedriver().setup();
-			driver = new ChromeDriver();
+			chromeOptions.addArguments("--headless");
+			driver = new ChromeDriver(chromeOptions);
 			wait = new WebDriverWait(driver, 15);
 			driver.manage().window().maximize();
 			page = new BasePage(driver,wait);
